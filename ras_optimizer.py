@@ -7,11 +7,8 @@ import xml.etree.ElementTree as ET
 
 import numpy as np
 import pyautogui
-import opencv # just so it shows up in requiremens.txt
 import pyperclip
 from matplotlib import pyplot as plt
-
-opencv
 
 
 def parse_cdx1(filename):
