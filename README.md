@@ -35,8 +35,8 @@ There are a lot of things that can causes issues in this auto-gui paradigm. Gonn
 
 # Getting Started
 
-Clone this repo, setup your python environment as you wish, run the following to install dependencies:
->pip install -r /path/to/requirements.txt
+Clone this repo, setup your python environment as you wish, run the following (from the base directory) to install dependencies:
+>pip install -r requirements.txt
 
 
 
