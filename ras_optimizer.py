@@ -48,6 +48,7 @@ def cdx1_sweep(infile, outfile, sweep_dict, rules=[], mode="zip"):
         infile (str): path to the original XML file
         outfile (str): path to write modified XML file
         sweep_dict (dict): dict where keys are XML properties, values are lists of values to sweep
+        rules (list): list of general "rules" to apply to every case after the overrides have been rendered.
         mode (str): "zip" for paired iteration, "product" for combinations
 
     outputs:
@@ -241,7 +242,7 @@ if __name__ == '__main__':
     # define substitutions/iterations 
     sweep_dict = {".//Fin/Span": [1.5, 1.7, 2.0, 2.5, 3.0]} # THESE CASES COVERS ALL RAS STABILITY WARNING/ERROR SCENARIOS
 
-    # temp file to write cdx1 files to (TODO: add option to save these, or make this an actual temp file)
+    # temp file to write cdx1 files to
     temp_file = os.path.join(os.getcwd(), 'TEMPFILE.CDX1')
 
     ### ~~~~~~~~~~ MAIN ~~~~~~~~~~~~ ###
