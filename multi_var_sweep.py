@@ -30,23 +30,28 @@ if __name__ == '__main__':
     #     <FX3>1</FX3>
     # </Fin>
 
+    # sweep matrix
     sweep_dict = {  ".//Fin/Chord":         np.linspace(5, 10, 3),
                     ".//Fin/TipChord":      np.linspace(0.5, 5, 3),
                     ".//Fin/Span":          np.linspace(1.5, 3, 3),
                     ".//Fin/SweepDistance": np.linspace(2, 7, 3),
     }
 
-    # rules = {'.//Fin/Location', './/Fin/Chord+2' }
+    # additional rules to apply
+    # these are called with a really dumb/simple exec() call from within cdx1_sweep(), 
+    # which is why we need the extra overrides[] jargon, but if you're this far, you've got this
+    rules = [r"overrides['.//Fin/Location'] = overrides['.//Fin/Chord'] + 1.0"] # force fin to be 1" from base of tube
 
+    # temp file
     temp_file = os.path.join(os.getcwd(), 'TEMPFILE.CDX1')
 
     ### ~~~~~~~~~~ MAIN ~~~~~~~~~~~~ ###
 
     print('\n Waiting a second to allow user to make RAS visible if needed...\n')
-    time.sleep(1) 
+    time.sleep(2) 
     print('Beginning RAS iteration...')
 
-    results, run_values = cdx1_sweep(cdx1_template, temp_file, sweep_dict, mode="product")
+    results, run_values = cdx1_sweep(cdx1_template, temp_file, sweep_dict, rules=rules, mode="product")
 
     print('Run Values: \n', run_values)
     print('Results: \n', results)

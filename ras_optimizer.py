@@ -1,4 +1,5 @@
 import os
+import re
 import sys 
 import time
 import json
@@ -27,16 +28,19 @@ def parse_cdx1(filename):
 def cdx1_subs(infile, outfile, subs):
     # inputs a dictionary of key-value pairs, uses that to overwrite/modify an existing CDX1 file
     tree, root = parse_cdx1(infile)
-
+    
+    # apply subs
     for property, value in subs.items():
         element = root.find(property)
         if element is not None:
             element.text = str(value)
-
+            
     tree.write(outfile, encoding='unicode', xml_declaration=False)
 
 
-def cdx1_sweep(infile, outfile, sweep_dict, mode="zip"):
+
+
+def cdx1_sweep(infile, outfile, sweep_dict, rules=[], mode="zip"):
     """
     runs a sweep of overrides through RAS, given an XML file and dictionary of mods to apply. 
     
@@ -56,10 +60,20 @@ def cdx1_sweep(infile, outfile, sweep_dict, mode="zip"):
 
     keys, values = zip(*sweep_dict.items())  # Extract keys and value lists
     sweep_iter = zip(*values) if mode == "zip" else itertools.product(*values)
+    sweep_iter_list = list(zip(*values) if mode == "zip" else itertools.product(*values))
+
+    print(f'\n\t NUMBER OF RUNS COMMENCING: {len(sweep_iter_list)}')
+    print(f'\t Estimated runtime: ~{len(sweep_iter_list)*5} seconds\n')
 
     for i, value_combo in enumerate(sweep_iter):
         run_values.append(list(value_combo))
         overrides = dict(zip(keys, value_combo))
+
+        for rule in rules:
+            # i could overengineer a better way to do this, but this is a fucking autogui script
+            # see examples for usage
+            exec(rule) 
+        
         cdx1_subs(infile, outfile, overrides)
         
         print(f"Running: {outfile} with overrides {overrides}...")
@@ -233,7 +247,7 @@ if __name__ == '__main__':
     ### ~~~~~~~~~~ MAIN ~~~~~~~~~~~~ ###
 
     print('\n Waiting a second to allow user to make RAS visible if needed...\n')
-    time.sleep(1) 
+    time.sleep(2) 
     print('Beginning RAS iteration...')
 
     # ~ main call ~
