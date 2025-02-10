@@ -8,11 +8,18 @@ RASAero II can be found [here](https://www.rasaero.com/).
 - This has only been tested with the following, and even then, can be quite finicky to get working smoothly:
   - Windows 10
   - RASAEROII v1.0.2.0
+ 
+Please feel free to reach out to me if you have any issues! (Issues, or, my email is on my profile)
 
 > [!CAUTION]
 > **YOU NEED TO MAKE SURE YOUR WINDOWS-WINDOW-SCALING IS SET TO 100% OR ELSE THIS WILL CERTAINLY NOT WORK**
 >
 > Right click desktop -> Display Settings -> Scale and Layout -> "Change size of text, apps, and other items" -> 100%
+
+
+# TODOs/Limitations
+- Implement exporting of all data - currently only can extract Max Altitude
+- Make interacting the CDX1 file more pythonic- convert it to a nested dict or something so you don't have to key with kinda gross xml.
 
 
 # Debugging
