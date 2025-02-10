@@ -1,14 +1,16 @@
-
+import os
 import sys 
 import time
 import json
 import warnings
+import itertools
 import xml.etree.ElementTree as ET
 
 import numpy as np
 import pyautogui
 import pyperclip
 from matplotlib import pyplot as plt
+
 
 
 def parse_cdx1(filename):
@@ -22,14 +24,48 @@ def parse_cdx1(filename):
     return tree, root
 
 
-def cdx1_sub(infile, outfile, property, value):
-    # just substitutes property in CDX1 file
+def cdx1_subs(infile, outfile, subs):
+    # inputs a dictionary of key-value pairs, uses that to overwrite/modify an existing CDX1 file
     tree, root = parse_cdx1(infile)
 
-    property = root.find(property)
-    property.text = value
-    
+    for property, value in subs.items():
+        element = root.find(property)
+        if element is not None:
+            element.text = str(value)
+
     tree.write(outfile, encoding='unicode', xml_declaration=False)
+
+
+def cdx1_sweep(infile, outfile, sweep_dict, mode="zip"):
+    """
+    runs a sweep of overrides through RAS, given an XML file and dictionary of mods to apply. 
+    
+    args:
+        infile (str): path to the original XML file
+        outfile (str): path to write modified XML file
+        sweep_dict (dict): dict where keys are XML properties, values are lists of values to sweep
+        mode (str): "zip" for paired iteration, "product" for combinations
+
+    outputs:
+        results: list of max altitude data
+        run_values: numpy array of input values used for each run
+    """
+
+    results = []
+    run_values = []
+
+    keys, values = zip(*sweep_dict.items())  # Extract keys and value lists
+    sweep_iter = zip(*values) if mode == "zip" else itertools.product(*values)
+
+    for i, value_combo in enumerate(sweep_iter):
+        run_values.append(list(value_combo))
+        overrides = dict(zip(keys, value_combo))
+        cdx1_subs(infile, outfile, overrides)
+        
+        print(f"Running: {outfile} with overrides {overrides}...")
+        results.append(open_and_run_RAS(outfile, treat_marginal_stability_as_fail=False))
+        
+    return results, np.array(run_values)
 
 
 
@@ -47,9 +83,9 @@ SLEEP_WINDOW_OPEN   = 0.7;  # delay added for opening new windows, which takes a
 SLEEP_RUN_SIM       = 0.4;  # delay added to allow sim to run fully
 
 
-def open_and_run_RAS_new(filename, pull_all_data = False, treat_marginal_stability_as_fail = False):
+def open_and_run_RAS(filename, pull_all_data = False, treat_marginal_stability_as_fail = False):
 
-    time.sleep(0.1) # additional sleep for additional "robustness"
+    time.sleep(0.1) # additional sleep for additional "robustness" between closing of one run and start of another
 
     #~~~~~~~~~~~~~~~~~~~~~~~ MAIN WINDOW ~~~~~~~~~~~~~~~~~~~~~#
 
@@ -102,6 +138,7 @@ def open_and_run_RAS_new(filename, pull_all_data = False, treat_marginal_stabili
         pyautogui.moveRel(RCLICK_CLOSE_OFFSET_REL[0], RCLICK_CLOSE_OFFSET_REL[1], duration=SLEEP_DEBUG) 
         pyautogui.click()
 
+        warnings.warn('This case was unstable!')
         close_flight_sim_window(fsW_x, fsW_y)
         
         return np.nan;
@@ -161,7 +198,6 @@ def open_and_run_RAS_new(filename, pull_all_data = False, treat_marginal_stabili
     return result
 
 
-
 def close_flight_sim_window(fsW_x, fsW_y):
     # just does the two-step process of closing the window, and hitting the confirmation prompt 
     
@@ -180,64 +216,42 @@ def close_flight_sim_window(fsW_x, fsW_y):
 
 
 
+
 if __name__ == '__main__':
 
+    ### ~~~~~~~ INPUTS ~~~~~~~ ###
 
-    # parse_cdx1('EXAMPLE_Loki.CDX1')
-    # cdx1_sub('EXAMPLE_Loki.CDX1', 'MODIFIED.CDX1', ".//Fin/Span", '15')
-    # open_and_run_RAS(r'C:\Users\emcke\Documents\GitHub_Repos\rasaero_optimizer\MODIFIED.CDX1')
+    # template cdx1 rocket file
+    cdx1_template = 'resource/EXAMPLE_Loki.CDX1'
 
-    base_file = 'resource/EXAMPLE_Loki.CDX1'
+    # define substitutions/iterations 
+    sweep_dict = {".//Fin/Span": [1.5, 1.7, 2.0, 2.5, 3.0]} # THESE CASES COVERS ALL RAS STABILITY WARNING/ERROR SCENARIOS
 
-    # var = './/Fin/Thickness'
-    # values = [0.1, 0.125, 0.15, 0.175, 0.2, 0.225, 0.25]
-    # values = [0.1, 0.15, 0.2, 0.25]
-    # var = './/Fin/FX1'
-    # values = [0.0, 0.25, 0.5, 1.0, 1.5, 2.0]
-    
-    
-    var = './/Fin/Span'
-    values = [1.5, 1.7, 2.0, 2.5] # THIS CASES COVERS ALL RAS WARNING/ERROR SCENARIOS
+    # temp file to write cdx1 files to (TODO: add option to save these, or make this an actual temp file)
+    temp_file = os.path.join(os.getcwd(), 'TEMPFILE.CDX1')
 
-    results = [];
-    temp_file = r'C:\Users\emcke\Documents\GitHub_Repos\rasaero_optimizer\TEMPFILE.CDX1'
+    ### ~~~~~~~~~~ MAIN ~~~~~~~~~~~~ ###
 
-    print('Waiting...\n')
+    print('\n Waiting a second to allow user to make RAS visible if needed...\n')
     time.sleep(1) 
+    print('Beginning RAS iteration...')
 
-    for val in values:
-        cdx1_sub(base_file, temp_file, var, str(val))
-        results.append(open_and_run_RAS_new(temp_file, treat_marginal_stability_as_fail=False))
+    # ~ main call ~
+    # this is a helper for performing sweeps and returning results, 
+    # but you can also make your own logic and talk to open_and_run_RAS() directly as needed 
+    results, run_values = cdx1_sweep(cdx1_template, temp_file, sweep_dict, mode="product")
 
+    # print results to screen
+    print('Run Values: \n', run_values)
+    print('Results: \n', results)
 
-    print(results)
-
-    plt.plot(values, results, marker='o')
-    plt.xlabel(var)
-    # plt.xlabel('TRAILING_EDGE Chamfer')
-    plt.ylabel('Max Alt, ft')
-    plt.title(base_file)
+    ### ~~~~~~~~~~ PLOTTING ~~~~~~~~~~~~ ###
+    
+    # scatter plot
+    keylist = list(sweep_dict.keys())
+    scatter = plt.plot(run_values[:,0], results, linestyle='-', marker='o')
+    plt.xlabel(keylist[0])
+    plt.ylabel("Max Alt")
+    plt.title("Example Sweep Results")
     plt.grid()
     plt.show()
-
-
-
-
-
-
-
-
-
-
- 
-
-
-
-
-
-
-
-    
-
-
-
