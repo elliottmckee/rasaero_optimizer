@@ -24,7 +24,8 @@ Please feel free to reach out to me if you have any issues! (GH Issues tab, or, 
 
 # TODOs/Limitations
 - ~~implement "rules" that you apply to inputs to help constrain things (like making sure fin is at same distance from aft end)~~
-- ~~refactor examples into their own folder~~
+- refactor example scripts into base directory
+- rename rasaero_optimizer.py to something better
 - Implement exporting of all data - currently only can extract Max Altitude
 - add option to save CDX1 files, or make this an actual temp file
 - Make interacting the CDX1 file more pythonic- convert it to a nested dict or something so you don't have to key with kinda gross xml...?
