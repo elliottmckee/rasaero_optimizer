@@ -6,16 +6,18 @@ import time
 import numpy as np
 from matplotlib import pyplot as plt
 
-from ras_optimizer import cdx1_sweep
+from ..ras_optimizer import cdx1_sweep
+
+RSRC_PATH  = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'resource')
 
 
 if __name__ == '__main__':
 
     ### ~~~~~~~ INPUTS ~~~~~~~ ###
 
-    cdx1_template = 'resource/EXAMPLE_Loki.CDX1'
+    cdx1_template = os.path.join(RSRC_PATH, 'EXAMPLE_Loki.CDX1')
 
-    # Fin variables to play with (copied from CDX1 file)
+    # Fin variables we can play with (copied from example CDX1 file)
     # <Fin>
     #     <Count>3</Count>
     #     <Chord>9</Chord>
@@ -32,14 +34,18 @@ if __name__ == '__main__':
 
     # sweep matrix
     sweep_dict = {  ".//Fin/Chord":         np.linspace(5, 10, 3),
-                    ".//Fin/TipChord":      np.linspace(0.5, 5, 3),
-                    ".//Fin/Span":          np.linspace(1.5, 3, 3),
                     ".//Fin/SweepDistance": np.linspace(2, 7, 3),
     }
 
+    # sweep_dict = {  ".//Fin/Chord":         np.linspace(5, 10, 3),
+    #                 ".//Fin/TipChord":      np.linspace(0.5, 5, 3),
+    #                 ".//Fin/Span":          np.linspace(1.5, 3, 3),
+    #                 ".//Fin/SweepDistance": np.linspace(2, 7, 3),
+    # }
+
     # additional rules to apply
     # these are called with a really dumb/simple exec() call from within cdx1_sweep(), 
-    # which is why we need the extra overrides[] jargon, but if you're this far, you've got this
+    # which is why we need the extra overrides[] jargon, but if you're this far, i think you've got this, i believe in you
     rules = [r"overrides['.//Fin/Location'] = overrides['.//Fin/Chord'] + 1.0"] # force fin to be 1" from base of tube
 
     # temp file
@@ -47,7 +53,7 @@ if __name__ == '__main__':
 
     ### ~~~~~~~~~~ MAIN ~~~~~~~~~~~~ ###
 
-    print('\n Waiting a second to allow user to make RAS visible if needed...\n')
+    print('\n Waiting a second to allow user to make RAS visible...\n')
     time.sleep(2) 
     print('Beginning RAS iteration...')
 

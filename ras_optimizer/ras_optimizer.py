@@ -13,20 +13,28 @@ import pyperclip
 from matplotlib import pyplot as plt
 
 
-
-def parse_cdx1(filename):
+def parse_cdx1(filename, print_tree=False):
+    # takes in RAS cdx1 file, returns the xml tree and root
 
     tree = ET.parse(filename)
     root = tree.getroot()
 
     print(f'Reading in: {filename}... \n')
-    # tree.write(sys.stdout, encoding='unicode', xml_declaration=True)
+    if print_tree: tree.write(sys.stdout, encoding='unicode', xml_declaration=True)
 
     return tree, root
 
 
 def cdx1_subs(infile, outfile, subs):
-    # inputs a dictionary of key-value pairs, uses that to overwrite/modify an existing CDX1 file
+    '''
+    given a cdx1 file and a dictionary of key-value "substitutions", modifies, writes out new CDX1 file
+
+    inputs:
+        infile (str): path to cdx1 file
+        outfile (str): path to write modified cdx1 file
+        subs (dict): dict where keys are the XML descriptor/id for a property, values are the value to override said property with 
+    '''
+    
     tree, root = parse_cdx1(infile)
     
     # apply subs
@@ -39,32 +47,35 @@ def cdx1_subs(infile, outfile, subs):
 
 
 
-
 def cdx1_sweep(infile, outfile, sweep_dict, rules=[], mode="zip"):
-    """
-    runs a sweep of overrides through RAS, given an XML file and dictionary of mods to apply. 
+    '''
+    "outer-loop" helper/convenience function
+    
+    runs a sweep of overrides through RAS, given an XML file and dictionary of substitutions to sweep over. 
     
     args:
         infile (str): path to the original XML file
         outfile (str): path to write modified XML file
-        sweep_dict (dict): dict where keys are XML properties, values are lists of values to sweep
-        rules (list): list of general "rules" to apply to every case after the overrides have been rendered.
+        sweep_dict (dict): dict where keys are XML properties, values are ***lists*** of values to sweep
+        rules (list): list of general "rules" to apply to every case after the overrides have been rendered. see examples
         mode (str): "zip" for paired iteration, "product" for combinations
 
     outputs:
         results: list of max altitude data
         run_values: numpy array of input values used for each run
-    """
+    '''
 
     results = []
     run_values = []
 
     keys, values = zip(*sweep_dict.items())  # Extract keys and value lists
+
     sweep_iter = zip(*values) if mode == "zip" else itertools.product(*values)
-    sweep_iter_list = list(zip(*values) if mode == "zip" else itertools.product(*values))
+    sweep_iter_list = list(zip(*values) if mode == "zip" else itertools.product(*values)) #dumb workaround - just need a copy that is a list
+
 
     print(f'\n\t NUMBER OF RUNS COMMENCING: {len(sweep_iter_list)}')
-    print(f'\t Estimated runtime: ~{len(sweep_iter_list)*5} seconds\n')
+    print(f'\t Estimated runtime: ~{7*len(sweep_iter_list)} seconds\n') # very dumb approximation
 
     for i, value_combo in enumerate(sweep_iter):
         run_values.append(list(value_combo))
@@ -73,7 +84,7 @@ def cdx1_sweep(infile, outfile, sweep_dict, rules=[], mode="zip"):
         for rule in rules:
             # i could overengineer a better way to do this, but this is a fucking autogui script
             # see examples for usage
-            exec(rule) 
+            exec(rule)
         
         cdx1_subs(infile, outfile, overrides)
         
@@ -85,8 +96,9 @@ def cdx1_sweep(infile, outfile, sweep_dict, rules=[], mode="zip"):
 
 
 # CONFIG - POINTER LOCATION OFFSETS FOR NAVIGATION
+RSRC_PATH               = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'resource')
 FILE_OFFSET             = [20, 40]  # location of File button in main-window-coordinates
-OPEN_OFFSET_REL         = [0, 45]   # relative location offset when file->open
+OPEN_OFFSET_REL         = [0, 45]   # relative location offset when going from file->open
 FLIGHT_OFFSET           = [500, 65] # location of Flight Simulation button in main-window-coordinates
 VD_BUTTON_OFFSET        = [0, 30]   # offset between FlightSim - ViewData top label and actual button
 RCLICK_CLOSE_OFFSET_REL = [10, 125] # relative location offset when right-click-closing a window
@@ -94,7 +106,7 @@ DOWN_RIGHT_NUDGE        = [10,10]   # just a nudge down and right
 
 # CONFIG - DELAYS
 SLEEP_DEBUG         = 0.0   # set to non-zero to see movements for debugging
-SLEEP_WINDOW_OPEN   = 0.7;  # delay added for opening new windows, which takes a bit sometimes
+SLEEP_WINDOW_OPEN   = 0.8;  # delay added for opening new windows, which takes a bit sometimes
 SLEEP_RUN_SIM       = 0.4;  # delay added to allow sim to run fully
 
 
@@ -105,7 +117,7 @@ def open_and_run_RAS(filename, pull_all_data = False, treat_marginal_stability_a
     #~~~~~~~~~~~~~~~~~~~~~~~ MAIN WINDOW ~~~~~~~~~~~~~~~~~~~~~#
 
     # Find location of open rasWindow (rW)
-    rW_x, rW_y, rW_w, rW_h = pyautogui.locateOnScreen('resource/MAIN_TOOLBAR.PNG', confidence=0.7)
+    rW_x, rW_y, rW_w, rW_h = pyautogui.locateOnScreen(os.path.join(RSRC_PATH, 'MAIN_TOOLBAR.PNG'), confidence=0.7)
 
     # FILE
     pyautogui.moveTo(rW_x+FILE_OFFSET[0], rW_y+FILE_OFFSET[1], duration=SLEEP_DEBUG)
@@ -127,11 +139,11 @@ def open_and_run_RAS(filename, pull_all_data = False, treat_marginal_stability_a
     #~~~~~~~~~~~~~~~~~~~~~~~ FLIGHT SIMULATION WINDOW ~~~~~~~~~~~~~~~~~~~~~#
 
     # Find location of flightsimulationWindow (fsW)
-    fsW_x, fsW_y, fsW_w, fsW_h = pyautogui.locateOnScreen('resource/FLIGHT_TOOLBAR.PNG', confidence=0.7)
+    fsW_x, fsW_y, fsW_w, fsW_h = pyautogui.locateOnScreen(os.path.join(RSRC_PATH, 'FLIGHT_TOOLBAR.PNG'), confidence=0.7)
 
     # We need to find the viewData button, since this spreadsheet view is resizable :(
     # this currently looks for the top label of the view data column, then goes down to the first button
-    vD_x, vD_y = pyautogui.locateCenterOnScreen('resource/FLIGHT_VIEWDATA.PNG', confidence=0.7)
+    vD_x, vD_y = pyautogui.locateCenterOnScreen(os.path.join(RSRC_PATH, 'FLIGHT_VIEWDATA.PNG'), confidence=0.7)
     pyautogui.moveTo(vD_x+VD_BUTTON_OFFSET[0], vD_y+VD_BUTTON_OFFSET[1], duration=SLEEP_DEBUG)
 
     # Run simulation
@@ -146,7 +158,7 @@ def open_and_run_RAS(filename, pull_all_data = False, treat_marginal_stability_a
     # CHECK FOR UNSTABLE ~~~ERROR~~~
     try: 
         # look for unstable window
-        ue_x, ue_y = pyautogui.locateCenterOnScreen('resource/FLIGHT_UNSTABLE_ERR.PNG', confidence=0.8)
+        ue_x, ue_y = pyautogui.locateCenterOnScreen(os.path.join(RSRC_PATH, 'FLIGHT_UNSTABLE_ERR.PNG'), confidence=0.8)
 
         # if exists, close windows, return null
         pyautogui.rightClick(ue_x, ue_y)
@@ -165,8 +177,8 @@ def open_and_run_RAS(filename, pull_all_data = False, treat_marginal_stability_a
 
     # CHECK FOR MARGINAL STABILITY ~~~WARNING~~~
     try: 
-        # look for unstable window
-        ms_x, ms_y = pyautogui.locateCenterOnScreen('resource/FLIGHT_MARGINAL_STAB.PNG', confidence=0.8)
+        # look for marginal stability window
+        ms_x, ms_y = pyautogui.locateCenterOnScreen(os.path.join(RSRC_PATH, 'FLIGHT_MARGINAL_STAB.PNG'), confidence=0.7)
 
         # if exists, close window
         pyautogui.rightClick(ms_x, ms_y)
@@ -179,7 +191,7 @@ def open_and_run_RAS(filename, pull_all_data = False, treat_marginal_stability_a
             return np.nan;
 
         else:
-            # DEFAULT - in this household we let that shit ride - warn but continue
+            # in this household we let that shit ride - warn but continue
             warnings.warn('Marginal stability warning encountered!')
             pass
     
@@ -196,7 +208,7 @@ def open_and_run_RAS(filename, pull_all_data = False, treat_marginal_stability_a
     else: # just pull data from max altitude column
 
         # Find location of maxAlt (mA) column, since this spreadsheet view is resizable :(
-        mA_x, mA_y = pyautogui.locateCenterOnScreen('resource/FLIGHT_MAXALT.PNG', confidence=0.7)
+        mA_x, mA_y = pyautogui.locateCenterOnScreen(os.path.join(RSRC_PATH, 'FLIGHT_MAXALT.PNG'), confidence=0.7)
 
         # move over maxAlt result
         MA_BUTTON_OFFSET = [0, 30] # offset between label and button
@@ -225,7 +237,7 @@ def close_flight_sim_window(fsW_x, fsW_y):
     time.sleep(SLEEP_WINDOW_OPEN)
 
     # close closeConfirm (cC, unfort need to find window)
-    cC_x, cC_y, _, _ = pyautogui.locateOnScreen('resource/FLIGHT_CLOSECONFIRM.PNG', confidence=0.7)
+    cC_x, cC_y, _, _ = pyautogui.locateOnScreen(os.path.join(RSRC_PATH, 'FLIGHT_CLOSECONFIRM.PNG'), confidence=0.7)
     pyautogui.moveTo(cC_x+CLOSECONFIRM_OFFSET_REL[0], cC_y+CLOSECONFIRM_OFFSET_REL[1])
     pyautogui.click()
 
@@ -237,7 +249,7 @@ if __name__ == '__main__':
     ### ~~~~~~~ INPUTS ~~~~~~~ ###
 
     # template cdx1 rocket file
-    cdx1_template = 'resource/EXAMPLE_Loki.CDX1'
+    cdx1_template = os.path.join(RSRC_PATH, 'EXAMPLE_Loki.CDX1')
 
     # define substitutions/iterations 
     sweep_dict = {".//Fin/Span": [1.5, 1.7, 2.0, 2.5, 3.0]} # THESE CASES COVERS ALL RAS STABILITY WARNING/ERROR SCENARIOS
@@ -247,7 +259,7 @@ if __name__ == '__main__':
 
     ### ~~~~~~~~~~ MAIN ~~~~~~~~~~~~ ###
 
-    print('\n Waiting a second to allow user to make RAS visible if needed...\n')
+    print('\n Waiting a second to allow user to make RAS visible...\n')
     time.sleep(2) 
     print('Beginning RAS iteration...')
 
