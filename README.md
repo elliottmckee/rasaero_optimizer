@@ -72,41 +72,43 @@ When complete, it should plot something like this (_if you have python setup to 
 > Your results may not be exactly the same, as I may have updated things, or you may have different settings selected in RASAero.
 
 
-# Other examples
-These are unfortunately beholden to annoying python functional paradigms (or i am just stupid), so including directions on how to run.
+# Examples
+These are unfortunately beholden to annoying python packaging paradigms (or i am just stupid), so including directions on how to run them.
 
 ## [multi_var_sweep.py](rasaero_optimizer/examples/multi_var_sweep.py)
-This does a multi-variate sweep across many design parameters. Can run "zip" or "product" style inputs
+This does a multi-variate sweep across many design parameters, with the objective being altitude. Can run "zip" or "product" style inputs
 
 run the following from the main repo directory
 > python -m rasaero_optimizer.examples.multi_var_sweep
 
 
 
-## [multi_var_sweep.py](ras_optimizer/examples/multi_var_sweep.py)
-This does a multi-variate sweep across many design parameters. Can run "zip" or "product" style inputs
+## [optimize_fins.py](rasaero_optimizer/examples/optimize_fins.py)
+Performs a multi-variate, iterative, constrained optimization across fin parameters to maximize altitude.
 
 run the following from the main repo directory
-> python -m ras_optimizer.examples.multi_var_sweep
+> python -m rasaero_optimizer.examples.optimize_fins 
 
 
 
 
 
 
-# Usage
+# Usage Notes
 
-A helper high-level function, cdx1_sweep() is a helper that deals with setting up and iteration over cases. You hand it:
+See [optimize_fins.py](rasaero_optimizer/examples/optimize_fins.py) for an example of optimization.
+
+
+cdx1_sweep() is a "outer loop" helper that deals with setting up and iteration over cases. This can handle zip() or product() style inputs. You hand it:
 - a CDX1 input file
 - a temporary filename to write modified CDX1 files to
 - a "sweep-dictionary" which defines which variables you are iterating over
 - optionally, rules that are a function of the sweep-dictionary values (see examples)
 
-This can handle zip() or product() style inputs.
-
 
 > [!Note]
 > Alternatively, if you want to write your own outer loops, you can interact with the main RAS driver, open_and_run_RAS() directly
+
 
 The way you find the key for variables to "override"/sweep-over is by looking at the .CDX1 file. This allows you to key into any of the variables in it: fin parameters, body, nosecone, etc. It looks a bit crude, but is relatively straightforward.
 
