@@ -9,7 +9,7 @@ RASAero II can be found [here](https://www.rasaero.com/).
   - Windows 10
   - RASAEROII v1.0.2.0
  
-Please feel free to reach out to me if you have any issues! (Issues, or, my email is on my profile)
+Please feel free to reach out to me if you have any issues! (GH Issues tab, or, my email is on my profile)
 
 > [!CAUTION]
 > **YOU NEED TO MAKE SURE YOUR WINDOWS-WINDOW-SCALING IS SET TO 100% OR ELSE THIS WILL CERTAINLY NOT WORK**
@@ -18,8 +18,14 @@ Please feel free to reach out to me if you have any issues! (Issues, or, my emai
 
 
 # TODOs/Limitations
+- ~~implement "rules" that you apply to inputs to help constrain things (like making sure fin is at same distance from aft end)~~
+- refactor examples into their own folder
 - Implement exporting of all data - currently only can extract Max Altitude
-- Make interacting the CDX1 file more pythonic- convert it to a nested dict or something so you don't have to key with kinda gross xml.
+- add option to save CDX1 files, or make this an actual temp file
+- Make interacting the CDX1 file more pythonic- convert it to a nested dict or something so you don't have to key with kinda gross xml...?
+- Gradient descent ( i wish i was kidding )
+- parallelization with numerous RAS windows (i am mostly kidding this time)
+
 
 
 # Debugging
@@ -28,7 +34,7 @@ There are a lot of things that can causes issues in this auto-gui paradigm. Gonn
 > Exception has occurred: ImageNotFoundException
 > Could not locate the image
 
-  1) the window/screen hasn't updated in time to show the info PyAutoGUI is looking for. ***Try increasing the delay parameters***
+  1) the window/screen hasn't updated in time to show the info PyAutoGUI is looking for. ***Try increasing the delay parameters first***
   3) the image on your screen is **actually** different (to the computer-eye) than the reference image. ***You can take screenshots of the buttons as seen on your device with the snipping tool, and save over the reference images (try and make yours match as closely as possible in framing, though) in resources/***
 
 
@@ -52,12 +58,35 @@ When complete, it should plot something like this (_if you have python setup to 
 ![testcase_result](resource/2025_02_09_testcase.png)
 
 > [!Note]
-> Your results may not be exactly the same, based on other settings you have selected in RASAeroII.
-
-
+> Your results may not be exactly the same, as I may have updated things, or you may have different settings selected in RASAero.
 
 
 
 
 # Usage
+
+A helper high-level function, cdx1_sweep() is a helper that deals with setting up and iteration over cases. You hand it:
+- a CDX1 input file
+- a temporary filename to write modified CDX1 files to
+- a "sweep-dictionary" which defines which variables you are iterating over
+- optionally, rules that are a function of the sweep-dictionary values (see examples)
+
+This can handle zip() or product() style inputs.
+
+> [!Note]
+> Alternatively, if you want to write your own outer loops, you can interact with the main RAS driver, open_and_run_RAS() directly
+
+The way you find the key for variables to "override"/sweep-over is by looking at the .CDX1 file. This allows you to key into any of the variables in it: fin parameters, body, nosecone, etc. It looks a bit crude, but is relatively straightforward.
+
+
+
+
+
+
+
+
+
+
+
+
 
