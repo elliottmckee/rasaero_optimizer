@@ -8,7 +8,7 @@ import scipy
 import numpy as np
 from matplotlib import pyplot as plt
 
-from ras_optimizer.ras_optimizer import cdx1_sweep, open_and_run_RAS, parse_cdx1, cdx1_subs
+from ..rasaero_optimizer import open_and_run_RAS, parse_cdx1, cdx1_subs
 
 RSRC_PATH  = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'resource')
 

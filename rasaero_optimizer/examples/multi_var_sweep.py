@@ -6,7 +6,7 @@ import time
 import numpy as np
 from matplotlib import pyplot as plt
 
-from ..ras_optimizer import cdx1_sweep
+from ..rasaero_optimizer import cdx1_sweep
 
 RSRC_PATH  = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'resource')
 
