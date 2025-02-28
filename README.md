@@ -52,12 +52,12 @@ Clone this repo, setup your python environment as you wish, run the following (f
 >pip install -r requirements.txt
 
 
-Open RASAeroII -> "Select Motor File" -> point it to the [test-case .eng file](ras_optimizer/resource/Loki_L2050LW.eng)
+Open RASAeroII -> "Select Motor File" -> point it to the [test-case .eng file](rasaero_optimizer/resource/Loki_L2050LW.eng)
 
 
 **With a clean RASAeroII window open, run the following from the base repo directory:**
 
-> python -m ras_optimizer
+> python -m rasaero_optimizer.rasaero_optimizer
 
 **then quickly alt-tab to bring RASAeroII back on the screen if it isn't visible already.**
 
@@ -66,7 +66,7 @@ Open RASAeroII -> "Select Motor File" -> point it to the [test-case .eng file](r
 
 When complete, it should plot something like this (_if you have python setup to display plots_):
 
-![testcase_result](ras_optimizer/resource/2025_02_09_testcase.png)
+![testcase_result](rasaero_optimizer/resource/2025_02_09_testcase.png)
 
 > [!Note]
 > Your results may not be exactly the same, as I may have updated things, or you may have different settings selected in RASAero.
@@ -75,11 +75,11 @@ When complete, it should plot something like this (_if you have python setup to 
 # Other examples
 These are unfortunately beholden to annoying python functional paradigms (or i am just stupid), so including directions on how to run.
 
-## [multi_var_sweep.py](ras_optimizer/examples/multi_var_sweep.py)
+## [multi_var_sweep.py](rasaero_optimizer/examples/multi_var_sweep.py)
 This does a multi-variate sweep across many design parameters. Can run "zip" or "product" style inputs
 
 run the following from the main repo directory
-> python -m ras_optimizer.examples.multi_var_sweep
+> python -m rasaero_optimizer.examples.multi_var_sweep
 
 
 
