@@ -3,6 +3,8 @@ PyAutoGUI-interface with RASAeroII. Allows for sweeps, optimization, etc. undern
 
 RASAero II can be found [here](https://www.rasaero.com/).
 
+![ras optimize gif](rasaero_optimizer/resource/optimize_demo_small.gif)
+
 
 # Disclaimers
 
